@@ -1,0 +1,19 @@
+======================================================
+COE67-222 Operating Systems - Lab 02 Report
+Name: อภิสิทธิ์   สุขเสนา
+Student ID: 67130302
+======================================================
+
+1. Execution Time Comparison:
+- Sequential Time: 10.18  seconds
+- Multithreading Time: 10.15  seconds
+- Multiprocessing Time: 7.96 seconds
+
+2. System Observation (htop):
+Explain the difference in CPU core utilization (in htop) when running the Multithreading script vs. the Multiprocessing script.
+- ขณะรัน Multithreading: มี CPU core เพียงคอร์เดียวที่ทำงานเต็ม 100%  ส่วนคอร์อื่นๆ ยังคงว่างงาน 
+- ขณะรัน Multiprocessing: CPU ทุก Core ที่มีในระบบถูกใช้งานและพุ่งขึ้น 100% พร้อมกัน เพราะ OS Scheduler สามารถกระจายแต่ละ Process ไปรันบนคอร์ต่างๆ ได้อย่างอิสระ
+3. Analysis (The GIL):
+Based on your results, why did Multithreading fail to make the code run faster? Why is Multiprocessing a better choice for CPU-bound tasks (like Machine Learning data augmentation) in Python?
+ Multithreading ไม่ทำให้โปรแกรมเร็วขึ้น เกิดจาก Global Interpreter Lock เพราะ Multiprocessing จะสร้าง Process แยกกันในระดับ OS ซึ่งแต่ละ Process จะมีพื้นที่ Memory และ Python Interpreter 
+เป็นของตัวเองอย่างเป็นอิสระ OS จึงสามารถจัดสรรให้รันบน Multi-core CPU แบบคู่ขนาน  ได้จริง จึงเหมาะสำหรับงานที่เน้นประมวลผลคำนวณหนักๆ 

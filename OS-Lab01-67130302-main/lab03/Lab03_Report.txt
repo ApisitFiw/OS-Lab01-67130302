@@ -1,0 +1,39 @@
+======================================================
+COE67-222 Operating Systems - Lab 03 Report
+Name: อภิสิทธิ์   สุขเสนา
+Student ID: 67130302
+======================================================
+
+1. The Race Condition (Phase 2):
+In the `race_condition.py` script, what exactly causes the final weight to be less than the expected value? Explain the role of the OS Scheduler in this error.
+การดำเนินการ shared_weight = temp + 1 ไม่ใช่การทำงานแบบ Atomic  แต่ประกอบด้วย 3 ขั้นตอนย่อย คือ: อ่านค่า (Read), คำนวณ (Modify), และบันทึกค่า (Write)
+เมื่อมีการรันหลายเธรดพร้อมกัน OS Scheduler จะทำ Preemptive Multitasking โดยการสลับการทำงานของเธรด ในขณะที่เธรดที่ 1 อ่านค่าของ shared_weight มาเก็บไว้ใน temp แล้วถูกสั่งหยุดชั่วคราว
+ OS Scheduler จะสลับไปให้เธรดที่ 2 ทำงาน ซึ่งเธรดที่ 2 ก็จะอ่านค่าเดิมของ shared_weight ที่ยังไม่ถูกบวกเพิ่ม นำไปคำนวณและบันทึกค่าใหม่ลงหน่วยความจำ 
+ พอเธรดที่ 1 กลับมาทำงานต่อ มันจะใช้ค่าเก่าที่ค้างอยู่ใน temp คำนวณและเขียนทับการอัปเดตของเธรดที่ 2 ทันที ส่งผลให้เกิดความผิดปกติแบบ "Lost Update"  ทำให้ค่านับจริงที่ได้น้อยกว่าค่าที่คาดหวังอย่างมาก
+
+2. Mutex vs. Semaphore (Phase 3):
+In `producer_consumer.py`:
+- What is the specific job of the `mutex`?
+- What is the specific job of the `empty` and `full` semaphores? 
+(Why can't we just use a Mutex for everything?)
+
+ mutex ทำหน้าที่รักษาความปลอดภัยแบบ Mutual Exclusion โดยการล็อก Critical Section เพื่อให้มั่นใจว่าจะมีเพียงเธรดเดียวเท่านั้น ที่สามารถอ่านหรือเขียนบัฟเฟอร์ส่วนกลางและอัปเดตตัวชี้ตำแหน่ง 
+ได้ ณ ช่วงเวลาหนึ่งๆ เพื่อป้องกันสภาวะ Race Condition  เซมาฟอร์ empty และ full เป็น Counting Semaphores ที่รับผิดชอบด้านการประสานเวลา และการติดตามจำนวนทรัพยากร
+
+ -empty ทำหน้าที่ติดตามจำนวนช่องว่างที่เหลืออยู่ และจะบล็อก ตัว Producer เมื่อบัฟเฟอร์เต็ม
+
+ -full ทำหน้าที่ติดตามจำนวนช่องที่มีข้อมูลอยู่ และจะบล็อกตัว Consumer เมื่อบัฟเฟอร์ว่างเปล่า
+
+และ Mutex ให้ได้เพียงการล็อกแบบไบนารี  เพื่อความปลอดภัยเท่านั้น แต่ไม่สามารถนับจำนวนทรัพยากรคงเหลือ หรือจัดการเงื่อนไขด้านจังหวะเวลาได้ 
+
+3. Deadlock Awareness:
+In the Producer function, we wrote:
+    empty.acquire()
+    mutex.acquire()
+What would happen if we swapped these two lines? (mutex first, then empty). Imagine the buffer is completely full. Explain the potential OS problem.
+สถานการณ์ที่บัฟเฟอร์เต็มอยู่ (empty == 0)
+ขั้นตอนที่ 1: Producer จะทำการล็อกกุญแจ mutex ได้สำเร็จเป็นลำดับแรก
+ขั้นตอนที่ 2: จากนั้น Producer จะพยายามเรียก empty.acquire() แต่เนื่องจากบัฟเฟอร์เต็ม (empty == 0) ทำให้ Producer ถูกบล็อก (ต้องรอจนกว่า empty จะมีค่าเพิ่มขึ้น)
+ขั้นตอนที่ 3: Producer จึงติดอยู่ในสถานะถูกบล็อกโดยที่ ยังถือครองกุญแจ mutex ไว้กับตัว
+ขั้นตอนที่ 4: Consumer จำเป็นต้องทำงานเพื่อดึงข้อมูลออก 1 ชิ้นและส่งสัญญาณ empty.release() ให้ช่องว่างเพิ่มขึ้น แต่ก่อนที่ Consumer จะเข้าถึงบัฟเฟอร์ได้ มันจะต้องเรียก mutex.acquire() เสียก่อน
+ขั้นตอนที่ 5: เนื่องจาก Producer ถือกุญแจ mutex ค้างไว้ Consumer จึงถูกบล็อกทันทีที่พยายามขอกุญแจ mutex
