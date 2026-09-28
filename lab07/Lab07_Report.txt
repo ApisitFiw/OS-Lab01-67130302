@@ -1,0 +1,29 @@
+======================================================
+COE67-222 Operating Systems - Lab 07 Report
+Name: นายอภิสิทธิ์   สุขเสนา
+Student ID: 67130302
+======================================================
+1. The Convoy Effect (Phase 2):
+In the FCFS output of `cpu_scheduler.py`, what is the "Convoy Effect"? How did the presence of Process P1 affect the waiting times of P2 and P3?
+
+คำตอบ:
+"Convoy Effect" คือ ปรากฏการณ์ที่โพรเซสขนาดเล็ก/งานสั้น ๆ หลายตัว ต้องติดค้างรอคิวเป็นเวลานานอยู่เบื้องหลังโพรเซสขนาดใหญ่ที่ใช้เวลา CPU Burst ยาวนาน 
+ผลกระทบจาก P1: เพราะ P1 เข้ามาก่อนและใช้เวลาทำงานนานถึง 10 หน่วย ส่งผลให้ P2 ต้องรอนานถึง 10 หน่วย แต่ที่ทำงานจริงแค่ 2 หน่วย และ P3 ต้องรอนานถึง 12 หน่วย แต่ทำงานจริงแค่ 3 หน่วย ทำให้อัตราเวลารอคอยเฉลี่ย 
+ของทั้งระบบพุ่งสูงขึ้นเป็น 7.33 หน่วย
+
+2. Choosing the Time Quantum:
+In Round Robin, the Time Quantum is critical. 
+- What happens if the OS sets the Time Quantum extremely large (e.g., Quantum = 100)? Which algorithm does RR start to behave like?
+- What happens if the OS sets the Time Quantum extremely small (e.g., Quantum = 0.0001)? (Hint: Think about Context Switching overhead).
+
+คำตอบ:
+- หากกำหนด Time Quantum ใหญ่มาก (เช่น Quantum = 100) ทุกโพรเซสจะทำงานจนเสร็จสิ้นภายในรอบเดียวโดยไม่โดนตัดเวลา อัลกอริทึม Round Robin จะกลายสภาพเป็น FCFS ทันที
+- หากกำหนด Time Quantum เล็กมาก (เช่น Quantum = 0.0001): ระบบจะต้องสลับโพรเซส บ่อยครั้งอย่างมหาศาล ทำให้เกิด Context Switching Overhead สูงมาก CPU จะเสียเวลาส่วนใหญ่ไปกับการบันทึกและโหลดสถานะของโพรเซสแทนที่จะได้คำนวณงานจริง ส่งผลให้ประสิทธิภาพระบบตกต่ำลง
+
+3. AI Context:
+In Phase 3, we used a Round Robin approach for generating tokens in an LLM. Explain why iteration-level Round Robin scheduling prevents long user queries from starving short queries, and how it improves perceived latency (Time To First Token / TTFT) for interactive AI applications.
+
+คำตอบ:
+- การใช้ Round Robin ในระดับการวนรอบ โดยสลับสร้างทีละ 1 โทเค็นให้แต่ละคำขอ ช่วยไม่ให้คำขอยาว ๆ ผูกขาด GPU ไว้เพียงคนเดียว คำขอสั้น ๆ จึงไม่ต้องรอคอยงานยาวจนเสร็จ ทำให้งานสั้นจบและส่งผลลัพธ์กลับสู่ผู้ใช้ได้อย่างรวดเร็ว
+- ด้านการรับรู้ความหน่วง (Perceived Latency / TTFT): ผู้ใช้ทุกคนจะได้รับโทเค็นตัวแรก  เริ่มต้นตอบกลับมาบนหน้าจอแทบจะทันที ไม่ต้องรอนานจนรู้สึกว่าระบบค้าง จึงช่วยยกระดับประสบการณ์ใช้งาน 
+ ในแอปพลิเคชันแบบ Interactive ได้อย่างมาก
